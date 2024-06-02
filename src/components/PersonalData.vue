@@ -161,7 +161,6 @@ export default {
   methods: {
     async validate() {
       const validationResult = await this.$refs.form.validate();
-      console.log("Form validation result: ", validationResult.valid);
 
       if (validationResult.valid === true) {
         this.sendOTP();
@@ -171,13 +170,11 @@ export default {
       }
     },
     async sendOTP() {
-      
       try {
         const response = await axios.get(`${API_URL}/send-code`);
 
         await this.$nextTick();
         this.isDisabled = true;
-        console.log(response.data);
 
         if (response.data.status == true) {
           this.otpSent = true;
@@ -205,7 +202,6 @@ export default {
         this.otpSent = true;
 
         if (response.data.status == true) {
-          console.log("OTP verified successfully");
           try {
             const response = await axios.post(
               `${API_URL}/lead`,
@@ -231,14 +227,14 @@ export default {
               this.snackbar2Message = "Error al Enviar Datos";
             }
           } catch (error) {
-            console.error("Error saving data:", error);
+            this.snackbar2 = true;
+            this.snackbar2Message = "Error al Enviar Datos";
           }
         } else {
           this.snackbar2 = true;
           this.snackbar2Message = "Error al Verificar OTP";
         }
       } catch (error) {
-        console.error("Error with  OTP verification:", error);
         this.snackbar2 = true;
         this.snackbar2Message = "Error al Verificar OTP";
       }

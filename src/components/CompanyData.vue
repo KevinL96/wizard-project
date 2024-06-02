@@ -12,7 +12,7 @@
         <h3>Ingresa tu RUC</h3>
       </v-card-title>
       <v-card-text>
-        <v-form ref="form" v-model="valid" >
+        <v-form ref="form" v-model="valid">
           <v-row>
             <v-col cols="12" sm="11">
               <v-text-field
@@ -115,7 +115,11 @@
                       dense
                       required
                       type="email"
-                      :rules="[(v) => !!v || 'Correo Electronico es Necesario', (v) => /.+@.+\..+/.test(v) || 'Correo Electronico invalido']"
+                      :rules="[
+                        (v) => !!v || 'Correo Electronico es Necesario',
+                        (v) =>
+                          /.+@.+\..+/.test(v) || 'Correo Electronico invalido',
+                      ]"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -146,30 +150,25 @@
       >
         <v-card-title>
           <h3>Confirmacion</h3>
-
         </v-card-title>
         <v-card-text>
-            <v-row>
-                <v-col>
-                    <h2>Tu Demo Ha sido Creado!</h2>
-                    
-                </v-col>
-
-            </v-row>
-            <v-row center >
-                <v-col>
-                    <v-icon class="zoom-in" center size="200">mdi-check-circle</v-icon>
-                </v-col>
-                
-            </v-row>
-
-            <v-row>
-                <v-col>
-                <p class="">Las Credenciales han sido enviadas al correo Electronico : <h2 class="zoom-in-out"><b>{{ correo }}</b></h2> </p>
-                </v-col>
-            </v-row>
-          
-
+          <v-row>
+            <v-col>
+              <h2>Tu Demo Ha sido Creado!</h2>
+            </v-col>
+          </v-row>
+          <v-row center>
+            <v-col>
+              <v-icon class="zoom-in" center size="200"
+                >mdi-check-circle</v-icon
+              >
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <!-- <p class="">Las Credenciales han sido enviadas al correo Electronico : <h2 class="zoom-in-out"><b>{{ correo }}</b></h2> </p> -->
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
     </v-expand-transition>
@@ -201,7 +200,7 @@ const API_URL = process.env.VUE_APP_API_URL;
 export default {
   data() {
     return {
-        valid: false,
+      valid: false,
       search: "",
       foundCompany: false,
       razonSocial: "",
@@ -230,43 +229,37 @@ export default {
   },
   methods: {
     async fetchCompanyData() {
-        const validationResult = await this.$refs.form.validate();
-        
-    if (validationResult.valid === true) {
-      try {
-        const response = await axios.get(`${API_URL}/ruc/${this.search}`);
+      const validationResult = await this.$refs.form.validate();
 
-        await this.$nextTick();
+      if (validationResult.valid === true) {
+        try {
+          const response = await axios.get(`${API_URL}/ruc/${this.search}`);
 
-        
+          await this.$nextTick();
 
-        if (response.data.status == true) {
-          this.foundCompany = true;
+          if (response.data.status == true) {
+            this.foundCompany = true;
 
-          this.snackbar1 = true;
-          this.snackbar1Message = "Datos de la Empresa Encontrados!";
-          this.razonSocial = response.data.data.businessname;
-          this.nombreComercial = response.data.data.commercialname;
-          this.subsidiaries = response.data.data.subsidiaries;
-          
-        } else if (response.data.status == false) {
-          this.foundCompany = false;
+            this.snackbar1 = true;
+            this.snackbar1Message = "Datos de la Empresa Encontrados!";
+            this.razonSocial = response.data.data.businessname;
+            this.nombreComercial = response.data.data.commercialname;
+            this.subsidiaries = response.data.data.subsidiaries;
+          } else if (response.data.status == false) {
+            this.foundCompany = false;
+            this.snackbar2 = true;
+            this.snackbar2Message = "Empresa no encontrada, Intente de nuevo";
+          }
+        } catch (error) {
           this.snackbar2 = true;
-          this.snackbar2Message = "Empresa no encontrada, Intente de nuevo";
-          
+          this.snackbar2Message = "Error con la API " + error.message;
         }
-      } catch (error) {
-        this.snackbar2 = true;
-        this.snackbar2Message = "Error con la API " + error.message;
-      }
-    } else {
+      } else {
         this.snackbar2 = true;
         this.snackbar2Message = "Ingresa los datos correctamente";
-        }
-
+      }
     },
     updateInputs() {
-      
       const selectedSubsidiary = this.subsidiaries.find(
         (subsidiary) => subsidiary.code === this.selectedCode
       );
@@ -276,55 +269,52 @@ export default {
       }
     },
     async sendData() {
-      
-        
-    const validationResult = await this.$refs.form.validate();
-    
-    if (validationResult.valid === true) {
+      const validationResult = await this.$refs.form.validate();
 
+      if (validationResult.valid === true) {
         // Solo para Debugear el mensaje de confirmacion
         //Debe Eliminarse en Produccion todo el metodo setTimeOut
         setTimeout(() => {
-        this.showConfirmationMessage = true;
-        this.foundCompany = false;
-        }, 2000);
-
-      try {
-        const response = await axios.post(`https://test.illarli.com/api/lead`, {
-            name : this.name,
-            lastname : this.lastname,
-            phone : this.phone,
-            ruc : this.search,
-            address : this.direccion,
-            commercial_name : this.nombreComercial,
-            businessname : this.razonSocial,
-            code : this.selectedCode,
-            email : this.correo
-        });
-
-        if (response.data.status == true) {
-
-          setTimeout(() => {
           this.showConfirmationMessage = true;
           this.foundCompany = false;
-          }, 2000);
-          this.snackbar3 = true;
-          this.snackbar3Message = "Datos Enviados!";
-        } else {
+        }, 2000);
+
+        try {
+          const response = await axios.post(
+            `https://test.illarli.com/api/lead`,
+            {
+              name: this.name,
+              lastname: this.lastname,
+              phone: this.phone,
+              ruc: this.search,
+              address: this.direccion,
+              commercial_name: this.nombreComercial,
+              businessname: this.razonSocial,
+              code: this.selectedCode,
+              email: this.correo,
+            }
+          );
+
+          if (response.data.status == true) {
+            setTimeout(() => {
+              this.showConfirmationMessage = true;
+              this.foundCompany = false;
+            }, 2000);
+            this.snackbar3 = true;
+            this.snackbar3Message = "Datos Enviados!";
+          } else {
+            this.snackbar2 = true;
+            this.snackbar2Message = "Error al enviar los datos";
+          }
+        } catch (error) {
           this.snackbar2 = true;
-          this.snackbar2Message = "Error al enviar los datos";
+          this.snackbar2Message = "Error al enviar los datos: " + error.message;
         }
-      } catch (error) {
-        this.snackbar2 = true;
-        this.snackbar2Message = "Error al enviar los datos: " + error.message;
-      }
-    } else {
+      } else {
         this.snackbar2 = true;
         this.snackbar2Message = "Ingresa los datos correctamente";
-        }
-
+      }
     },
-
   },
   watch: {
     selectedCode() {
@@ -351,8 +341,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
 <style scoped>
@@ -361,8 +355,12 @@ export default {
 }
 
 @keyframes zoom-in {
-  0% { transform: scale(0); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>
 <style scoped>
@@ -371,7 +369,12 @@ export default {
 }
 
 @keyframes zoom-in-out {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
 }
 </style>
