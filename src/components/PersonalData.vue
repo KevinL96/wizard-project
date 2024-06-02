@@ -152,7 +152,7 @@ export default {
       }
     },
     async sendOTP() {
-      // Send the OTP to the entered phone number
+
       try {
         const response = await axios.get(`${API_URL}/send-code`);
 
@@ -162,11 +162,10 @@ export default {
 
         if (response.data.status == true) {
           this.otpSent = true;
-          // If the OTP is sent, do something
+
           this.snackbar1 = true;
           this.snackbar1Message = "OTP Enviado!";
         } else {
-          // Handle the error case
           this.otpSent = false;
           this.snackbar2 = true;
           this.snackbar2Message =
@@ -187,7 +186,7 @@ export default {
         this.otpSent = true;
 
         if (response.data.status == true) {
-          // If the OTP is sent, do something
+
           console.log("OTP verified successfully");
           try {
             const response = await axios.post(
@@ -228,7 +227,7 @@ export default {
     },
 
     async resendOTP() {
-      // Resend the OTP
+
       this.otpSent = false;
       this.sendOTP();
     },

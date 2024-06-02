@@ -6,6 +6,7 @@
       max-width="800"
       width="100%"
       color="white"
+      v-if="showConfirmationMessage === false"
     >
       <v-card-title>
         <h3>Ingresa tu RUC</h3>
@@ -105,6 +106,20 @@
                   </v-col>
                 </v-row>
 
+                <v-row>
+                  <v-col cols="12" sm="12">
+                    <v-text-field
+                      v-model="correo"
+                      label="Correo Electronico"
+                      outlined
+                      dense
+                      required
+                      type="email"
+                      :rules="[(v) => !!v || 'Correo Electronico es Necesario', (v) => /.+@.+\..+/.test(v) || 'Correo Electronico invalido']"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+
                 <v-btn
                   class="my-4"
                   color="purple"
@@ -112,7 +127,7 @@
                   text="Enviar"
                   variant="flat"
                   width="70%"
-                  @click=""
+                  @click="sendData"
                 ></v-btn>
               </v-card-text>
             </v-card>
@@ -120,6 +135,44 @@
         </v-form>
       </v-card-text>
     </v-card>
+    <v-expand-transition>
+      <v-card
+        v-if="showConfirmationMessage"
+        class="py-8 px-6 text-center mx-auto ma-4"
+        elevation="12"
+        max-width="800"
+        width="100%"
+        color="green"
+      >
+        <v-card-title>
+          <h3>Confirmacion</h3>
+
+        </v-card-title>
+        <v-card-text>
+            <v-row>
+                <v-col>
+                    <h2>Tu Demo Ha sido Creado!</h2>
+                    
+                </v-col>
+
+            </v-row>
+            <v-row center >
+                <v-col>
+                    <v-icon class="zoom-in" center size="200">mdi-check-circle</v-icon>
+                </v-col>
+                
+            </v-row>
+
+            <v-row>
+                <v-col>
+                <p class="">Las Credenciales han sido enviadas al correo Electronico : <h2 class="zoom-in-out"><b>{{ correo }}</b></h2> </p>
+                </v-col>
+            </v-row>
+          
+
+        </v-card-text>
+      </v-card>
+    </v-expand-transition>
     <v-snackbar v-model="snackbar1" :timeout="2000" color="blue" elevation="24">
       <v-icon left>mdi-information</v-icon>
       {{ snackbar1Message }}
@@ -144,12 +197,14 @@
 import axios from "axios";
 
 const API_URL = process.env.VUE_APP_API_URL;
+
 export default {
   data() {
     return {
       search: "",
       foundCompany: false,
       razonSocial: "",
+      correo: "",
 
       nombreComercial: "",
       direccion: "",
@@ -158,6 +213,7 @@ export default {
       subsidiaries: [],
       selectedCode: null,
 
+      showConfirmationMessage: false,
       snackbar1: false,
       snackbar1Message: "Information",
       snackbar2: false,
@@ -173,9 +229,6 @@ export default {
   },
   methods: {
     async fetchCompanyData() {
-      // Perform API call to fetch company data based on RUC
-      // Once you have the data, update the form fields accordingly
-      // For example:
       try {
         const response = await axios.get(`${API_URL}/ruc/${this.search}`);
 
@@ -186,9 +239,8 @@ export default {
         if (response.data.status == true) {
           this.foundCompany = true;
 
-          // If the OTP is sent, do something
-          this.snackbar3 = true;
-          this.snackbar3Message = "Datos de la Empresa Encontrados!";
+          this.snackbar1 = true;
+          this.snackbar1Message = "Datos de la Empresa Encontrados!";
           this.razonSocial = response.data.data.businessname;
           this.nombreComercial = response.data.data.commercialname;
           this.subsidiaries = response.data.data.subsidiaries;
@@ -215,7 +267,41 @@ export default {
       if (selectedSubsidiary) {
         this.nombreComercial = selectedSubsidiary.commercial_name;
         this.direccion = selectedSubsidiary.address;
-        // Update other inputs as needed...
+      }
+    },
+    async sendData() {
+      
+        // Solo para Debugear el mensaje de confirmacion
+        //Debe Eliminarse en Produccion todo el metodo setTimeOut
+      setTimeout(() => {
+        this.showConfirmationMessage = true;
+      this.foundCompany = false;
+              }, 2000);
+      
+      try {
+        const response = await axios.post(`https://test.illarli.com/api/lead`, {
+          razonSocial: this.razonSocial,
+          nombreComercial: this.nombreComercial,
+          direccion: this.direccion,
+          codigo: this.selectedCode,
+          correo: this.correo,
+        });
+
+        if (response.data.status == true) {
+
+          setTimeout(() => {
+          this.showConfirmationMessage = true;
+          this.foundCompany = false;
+          }, 2000);
+          this.snackbar3 = true;
+          this.snackbar3Message = "Datos Enviados!";
+        } else {
+          this.snackbar2 = true;
+          this.snackbar2Message = "Error al enviar los datos";
+        }
+      } catch (error) {
+        this.snackbar2 = true;
+        this.snackbar2Message = "Error al enviar los datos: " + error.message;
       }
     },
   },
@@ -235,5 +321,36 @@ export default {
 
 :deep(.v-text-field input[type="number"]) {
   -moz-appearance: textfield;
+}
+</style>
+
+<style scoped>
+.spin {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+<style scoped>
+.zoom-in {
+  animation: zoom-in 0.5s forwards;
+}
+
+@keyframes zoom-in {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+</style>
+<style scoped>
+.zoom-in-out {
+  animation: zoom-in-out 2s infinite;
+}
+
+@keyframes zoom-in-out {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
 }
 </style>
