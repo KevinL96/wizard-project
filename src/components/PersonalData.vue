@@ -9,21 +9,30 @@
     >
       <h3 class="text-h6 mb-4">Datos Personales</h3>
       <v-form ref="form" v-model="valid">
-        <v-text-field
-          v-model="name"
-          label="Nombre"
-          required
-          :rules="[(v) => !!v || 'El nombre es requerido']"
-        ></v-text-field>
+        <v-row>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              :disabled="isDisabled"
+              v-model="name"
+              label="Nombre"
+              required
+              :rules="[(v) => !!v || 'El nombre es requerido']"
+            ></v-text-field>
+          </v-col>
+
+          <v-col cols="12" sm="6">
+            <v-text-field
+              :disabled="isDisabled"
+              v-model="lastName"
+              label="Apellido"
+              required
+              :rules="[(v) => !!v || 'El apellido es requerido']"
+            ></v-text-field>
+          </v-col>
+        </v-row>
 
         <v-text-field
-          v-model="lastName"
-          label="Apellido"
-          required
-          :rules="[(v) => !!v || 'El apellido es requerido']"
-        ></v-text-field>
-
-        <v-text-field
+          :disabled="isDisabled"
           v-model="phoneNumber"
           label="Número de teléfono"
           required
@@ -43,11 +52,16 @@
           class="my-4"
           color="purple"
           height="40"
-          text="Enviar"
+          text="Solicitar Código"
           variant="flat"
           width="70%"
           @click="validate"
         ></v-btn>
+
+        <p class="text-caption">
+          Haz clic en el "Solicitar codigo". Se te enviara un código de
+          verificación a tu numero de teléfono
+        </p>
 
         <v-snackbar
           v-model="snackbar1"
@@ -89,9 +103,13 @@
         width="100%"
         color="white"
       >
-        <h3 class="text-h6 mb-4">Código OTP</h3>
+        <h3 class="text-h6 mb-4">Código de Verificacion OTP</h3>
 
+        <h4 class="text-h6 mb-4">El codigo tiene una vigencia de 2 minutos</h4>
         <v-sheet color="white">
+          <v-label
+            >Ingresa el código de verificación enviado a tu telefono</v-label
+          >
           <v-otp-input
             color="white"
             v-model="otp"
@@ -127,6 +145,7 @@ console.log("API_URL:", API_URL);
 export default {
   data: () => ({
     valid: false,
+    disabled: false,
     name: "",
     lastName: "",
     phoneNumber: "",
@@ -152,12 +171,12 @@ export default {
       }
     },
     async sendOTP() {
-
+      
       try {
         const response = await axios.get(`${API_URL}/send-code`);
 
         await this.$nextTick();
-
+        this.isDisabled = true;
         console.log(response.data);
 
         if (response.data.status == true) {
@@ -186,7 +205,6 @@ export default {
         this.otpSent = true;
 
         if (response.data.status == true) {
-
           console.log("OTP verified successfully");
           try {
             const response = await axios.post(
@@ -227,7 +245,6 @@ export default {
     },
 
     async resendOTP() {
-
       this.otpSent = false;
       this.sendOTP();
     },

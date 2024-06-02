@@ -12,7 +12,7 @@
         <h3>Ingresa tu RUC</h3>
       </v-card-title>
       <v-card-text>
-        <v-form ref="form">
+        <v-form ref="form" v-model="valid" >
           <v-row>
             <v-col cols="12" sm="11">
               <v-text-field
@@ -201,6 +201,7 @@ const API_URL = process.env.VUE_APP_API_URL;
 export default {
   data() {
     return {
+        valid: false,
       search: "",
       foundCompany: false,
       razonSocial: "",
@@ -229,12 +230,15 @@ export default {
   },
   methods: {
     async fetchCompanyData() {
+        const validationResult = await this.$refs.form.validate();
+        
+    if (validationResult.valid === true) {
       try {
         const response = await axios.get(`${API_URL}/ruc/${this.search}`);
 
         await this.$nextTick();
 
-        console.log(response.data);
+        
 
         if (response.data.status == true) {
           this.foundCompany = true;
@@ -244,23 +248,25 @@ export default {
           this.razonSocial = response.data.data.businessname;
           this.nombreComercial = response.data.data.commercialname;
           this.subsidiaries = response.data.data.subsidiaries;
-          console.log("Subsidiaries: ", this.subsidiaries);
-
-          console.log("Razon Social: ", this.razonSocial);
+          
         } else if (response.data.status == false) {
           this.foundCompany = false;
           this.snackbar2 = true;
           this.snackbar2Message = "Empresa no encontrada, Intente de nuevo";
-          console.log("Empresa no encontrada");
+          
         }
       } catch (error) {
         this.snackbar2 = true;
-        this.snackbar2Message = "Error  " + error.message;
+        this.snackbar2Message = "Error con la API " + error.message;
       }
+    } else {
+        this.snackbar2 = true;
+        this.snackbar2Message = "Ingresa los datos correctamente";
+        }
+
     },
     updateInputs() {
-      console.log("Selected code:", this.selectedCode);
-      console.log("Subsidiaries:", this.subsidiaries);
+      
       const selectedSubsidiary = this.subsidiaries.find(
         (subsidiary) => subsidiary.code === this.selectedCode
       );
@@ -271,20 +277,29 @@ export default {
     },
     async sendData() {
       
+        
+    const validationResult = await this.$refs.form.validate();
+    
+    if (validationResult.valid === true) {
+
         // Solo para Debugear el mensaje de confirmacion
         //Debe Eliminarse en Produccion todo el metodo setTimeOut
-      setTimeout(() => {
+        setTimeout(() => {
         this.showConfirmationMessage = true;
-      this.foundCompany = false;
-              }, 2000);
-      
+        this.foundCompany = false;
+        }, 2000);
+
       try {
         const response = await axios.post(`https://test.illarli.com/api/lead`, {
-          razonSocial: this.razonSocial,
-          nombreComercial: this.nombreComercial,
-          direccion: this.direccion,
-          codigo: this.selectedCode,
-          correo: this.correo,
+            name : this.name,
+            lastname : this.lastname,
+            phone : this.phone,
+            ruc : this.search,
+            address : this.direccion,
+            commercial_name : this.nombreComercial,
+            businessname : this.razonSocial,
+            code : this.selectedCode,
+            email : this.correo
         });
 
         if (response.data.status == true) {
@@ -303,7 +318,13 @@ export default {
         this.snackbar2 = true;
         this.snackbar2Message = "Error al enviar los datos: " + error.message;
       }
+    } else {
+        this.snackbar2 = true;
+        this.snackbar2Message = "Ingresa los datos correctamente";
+        }
+
     },
+
   },
   watch: {
     selectedCode() {
