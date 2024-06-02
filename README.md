@@ -13,7 +13,7 @@ Tener instalado el CLI de Vue , si no esta instalado puedes hacerlo con el sigui
 ```bash
 npm install -g @vue/cli
 ```
-# Descargar el proyecto
+
 
 ----------
 
